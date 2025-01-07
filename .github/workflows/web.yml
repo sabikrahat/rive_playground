@@ -1,0 +1,64 @@
+name: Web Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Web Build
+
+    env:
+      my_repo: "sabikrahat/rive_playground.git"
+      my_secret: "${{secrets.RIVE_TOKEN}}"
+      my_email: "sabikrahat72428@gmail.com"
+      my_name: "Md. Sabik Alam Rahat"
+      # my_tag: "v1.0.${{github.run_number}}"
+
+    # This job will run on macos virtual machine
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # - run: |
+      #     echo "Your Repo is $my_repo"
+      #     echo "Your secrect token is $my_secret"
+      #     echo "Your email is $my_email"
+      #     echo "Your name is $my_name"
+
+      # Setup Java environment.
+      # - name: Setup Java
+      #   uses: actions/setup-java@v3
+      #   with:
+      #     distribution: "zulu"
+      #     java-version: "18.x"
+
+      # Setup the flutter environment.
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v1
+        with:
+          channel: stable
+          flutter-version: "3.27.1"
+
+      # - run: flutter config --enable-android
+      # - run: flutter config --enable-ios
+      - run: flutter config --enable-web
+      - run: flutter clean
+      - run: flutter pub get
+
+      # Flutter web release command.
+      - run: flutter build web --web-renderer html --release
+      - run: |
+          cd build/web
+          git init
+          git config --global user.email "$my_email"
+          git config --global user.name "$my_name"
+          git status
+          git remote add origin https://"$my_secret"@github.com/"$my_repo"
+          git checkout -b gh-pages
+          git add --all
+          git commit -m "update"
+          git push origin gh-pages -f
